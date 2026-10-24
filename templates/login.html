@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — NYAYA | AICTE Integrated Complaint Monitoring System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body {
+      background: linear-gradient(135deg, #042F2E 0%, #083332 30%, #0F4C47 70%, #115E59 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .portal-container {
+      max-width: 1060px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .portal-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+      transition: all 0.25s ease-in-out;
+      cursor: pointer;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .portal-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+    }
+    .portal-card.active {
+      border-color: #0F766E;
+      background: #fdfefe;
+    }
+    .auth-box {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+    }
+    .auth-header {
+      background: #042F2E;
+      color: white;
+      padding: 1.5rem;
+      border-bottom: 3px solid #14B8A6;
+    }
+    .badge-portal {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <!-- Header Branding -->
+    <div class="text-center text-white mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center mb-2">
+        <div class="nyaya-logo-square lg" style="background: linear-gradient(135deg, #0F766E 0%, #14B8A6 100%); border: 2px solid rgba(255, 255, 255, 0.25); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);">
+          <svg class="nyaya-scales-svg" viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="M7 21h10"/>
+            <path d="M12 3v18"/>
+            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+          </svg>
+        </div>
+      </div>
+      <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+        <h2 class="fw-bold mb-0 text-white tracking-wide" style="letter-spacing: 1.5px;">NYAYA</h2>
+        <span class="badge" style="background: #14B8A6; color: #042F2E; font-weight: 700; font-size: 0.9rem; padding: 0.25rem 0.6rem;">न्याय</span>
+      </div>
+      <h6 class="fw-semibold mb-1" style="color: #99F6E4; letter-spacing: 0.5px;">Network for Youth Assistance, Accountability &amp; Action</h6>
+      <p class="text-white-50 small mb-0" style="letter-spacing: 0.3px;">AICTE Integrated Complaint Monitoring System</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-4">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+              <i class="bi bi-info-circle me-1"></i> {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- 3 DISTINCT LOGIN PORTALS CARDS -->
+    <div class="row g-3 mb-4">
+      <!-- Portal 1: Complainant / Student -->
+      <div class="col-md-4">
+        <div class="portal-card p-3 border-top border-4 border-teal" style="border-top-color: #0F766E !important;" id="card-student" onclick="selectPortal('complainant', 'student', 'Student@123')">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-teal text-white badge-portal" style="background-color: #0F766E;">Portal 1 &bull; Student</span>
+              <i class="bi bi-person-workspace fs-4 text-teal" style="color: #0F766E;"></i>
+            </div>
+            <h6 class="fw-bold text-dark mb-1">Complainant / Student</h6>
+            <div class="text-teal small fw-semibold mb-1" style="color: #0F766E; font-size: 0.76rem;">Youth Assistance &amp; Grievances</div>
+            <p class="small text-muted mb-2" style="font-size: 0.8rem;">
+              Lodge complaints, submit attachments, and track real-time resolution stages with zero exposure of sensitive identity.
+            </p>
+            <ul class="list-unstyled small text-secondary mb-3" style="font-size: 0.76rem;">
+              <li><i class="bi bi-check2 text-success me-1"></i>Register new grievances</li>
+              <li><i class="bi bi-check2 text-success me-1"></i>Track 5-stage lifecycle</li>
+              <li><i class="bi bi-check2 text-success me-1"></i>Feedback &amp; reopen requests</li>
+            </ul>
+          </div>
+          <div>
+            <button type="button" class="btn btn-sm btn-outline-teal w-100 fw-semibold" style="color: #0F766E; border-color: #0F766E;" onclick="selectPortal('complainant', 'student', 'Student@123')">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Quick Fill: Student
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Portal 2: Institutional Head / Reviewer -->
+      <div class="col-md-4">
+        <div class="portal-card p-3 border-top border-4 border-warning" id="card-reviewer" onclick="triggerReviewerQuickFill()">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-warning bg-opacity-10 text-warning-emphasis badge-portal">Portal 2</span>
+              <i class="bi bi-building-check fs-4 text-warning"></i>
+            </div>
+            <h6 class="fw-bold text-dark mb-1">Institutional Reviewer / Head</h6>
+            <div class="text-warning-emphasis small fw-semibold mb-1" style="font-size: 0.76rem;">Institutional Accountability &amp; Review</div>
+            <p class="small text-muted mb-2" style="font-size: 0.8rem;">
+              Manage campus grievances, conduct departmental inquiries, formulate public resolution statements, or escalate to AICTE.
+            </p>
+
+            <!-- Institution Chooser for Institutional Reviewer -->
+            <div class="my-2 p-2 bg-light rounded border" onclick="event.stopPropagation()">
+              <label for="reviewerCollegeSelect" class="form-label small text-dark fw-bold mb-1" style="font-size: 0.72rem;">
+                <i class="bi bi-buildings text-warning me-1"></i>Select College / Campus:
+              </label>
+              <select class="form-select form-select-sm fw-semibold" id="reviewerCollegeSelect" onchange="onReviewerCollegeChange(this)">
+                {% for inst in institutions %}
+                  <option value="{{ inst.id }}" data-code="{{ inst.code }}" data-name="{{ inst.name }}" {% if loop.first %}selected{% endif %}>
+                    {{ inst.code }} — {{ inst.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <ul class="list-unstyled small text-secondary mb-3" style="font-size: 0.76rem;">
+              <li><i class="bi bi-check2 text-success me-1"></i>Campus-level complaint review</li>
+              <li><i class="bi bi-check2 text-success me-1"></i>Internal remarks &amp; resolution</li>
+              <li><i class="bi bi-check2 text-success me-1"></i>Direct regulatory escalation</li>
+            </ul>
+          </div>
+          <div>
+            <button type="button" class="btn btn-sm btn-outline-warning text-dark w-100 fw-semibold" id="btn-quickfill-reviewer" onclick="triggerReviewerQuickFill()">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Quick Fill: Reviewer (<span id="reviewer_college_label">ABC College</span>)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Portal 3: AICTE / Government Officer -->
+      <div class="col-md-4">
+        <div class="portal-card p-3 border-top border-4 border-danger" id="card-admin" onclick="selectPortal('aicte_officer', 'admin', 'Admin@123')">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-danger bg-opacity-10 text-danger badge-portal">Portal 3</span>
+              <i class="bi bi-award fs-4 text-danger"></i>
+            </div>
+            <h6 class="fw-bold text-dark mb-1">AICTE / Government Officer</h6>
+            <div class="text-danger small fw-semibold mb-1" style="font-size: 0.76rem;">Regulatory Action &amp; Deduplication</div>
+            <p class="small text-muted mb-2" style="font-size: 0.8rem;">
+              Nationwide regulatory oversight, cross-institution analytics, AI duplicate overlap adjudication, and formal investigations.
+            </p>
+            <ul class="list-unstyled small text-secondary mb-3" style="font-size: 0.76rem;">
+              <li><i class="bi bi-check2 text-success me-1"></i>Cross-institution surveillance</li>
+              <li><i class="bi bi-check2 text-success me-1"></i>AI Overlap review &amp; confirmation</li>
+              <li><i class="bi bi-check2 text-success me-1"></i>Audit logs &amp; statutory orders</li>
+            </ul>
+          </div>
+          <div>
+            <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-semibold" onclick="selectPortal('aicte_officer', 'admin', 'Admin@123')">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Quick Fill: AICTE Officer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Authentication Form Card -->
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8">
+        <div class="auth-box">
+          <div class="auth-header">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 class="fw-bold mb-0" id="portalHeaderTitle">Role-Based Secure Authentication</h6>
+                <div class="small text-white-50" id="portalHeaderSubtitle">Select your designated portal above or enter credentials below</div>
+              </div>
+              <span class="badge bg-light text-dark" id="portalActiveBadge">Universal Login</span>
+            </div>
+          </div>
+          <div class="p-4">
+            <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+              <input type="hidden" name="selected_institution_id" id="selected_institution_id" value="1">
+              <div class="mb-3">
+                <label for="username" class="form-label small fw-semibold text-secondary">Username or Institutional Email</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                  <input type="text" class="form-control" id="username" name="username" placeholder="e.g. student, inst_admin, or admin" required autofocus>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label for="password" class="form-label small fw-semibold text-secondary">Password</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                  <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-gov-primary w-100 py-2 fw-semibold">
+                <i class="bi bi-shield-lock-fill me-1"></i> Enter Designated Portal
+              </button>
+            </form>
+
+            <div class="mt-4 pt-3 border-top text-center">
+              <div class="small text-muted" style="font-size: 0.75rem;">
+                <i class="bi bi-shield-exclamation text-warning me-1"></i>
+                <strong>Notice:</strong> The demo credentials shown above are configured exclusively for demonstration and evaluation purposes. In a production AICTE deployment, institutional credentials adhere to SAML 2.0 / MeriPehchan SSO.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function onReviewerCollegeChange(selectEl) {
+      const selectedOpt = selectEl.options[selectEl.selectedIndex];
+      if (!selectedOpt) return;
+      const instId = selectedOpt.value;
+      const instCode = selectedOpt.getAttribute('data-code') || '';
+      const instName = selectedOpt.getAttribute('data-name') || '';
+      
+      document.getElementById('selected_institution_id').value = instId;
+      const shortName = instName.length > 18 ? instName.substring(0, 18) + '...' : instName;
+      const labelEl = document.getElementById('reviewer_college_label');
+      if (labelEl) labelEl.innerText = shortName;
+      
+      if (document.getElementById('card-reviewer').classList.contains('active')) {
+        document.getElementById('portalHeaderSubtitle').innerText = 'Campus Reviewer for: ' + instName + ' (' + instCode + ')';
+      }
+    }
+
+    function triggerReviewerQuickFill() {
+      const selectEl = document.getElementById('reviewerCollegeSelect');
+      const selectedOpt = selectEl && selectEl.selectedIndex >= 0 ? selectEl.options[selectEl.selectedIndex] : null;
+      const instId = selectedOpt ? selectedOpt.value : 1;
+      const instCode = selectedOpt ? selectedOpt.getAttribute('data-code') : 'AICTE-ENG-001';
+      const instName = selectedOpt ? selectedOpt.getAttribute('data-name') : 'ABC Engineering College';
+      
+      document.getElementById('selected_institution_id').value = instId;
+      selectPortal('institutional_reviewer', 'inst_admin', 'InstAdmin@123');
+      document.getElementById('portalHeaderSubtitle').innerText = 'Campus Reviewer for: ' + instName + ' (' + instCode + ')';
+    }
+
+    function selectPortal(role, username, password) {
+      document.getElementById('username').value = username;
+      document.getElementById('password').value = password;
+
+      // Update Active Card UI
+      document.querySelectorAll('.portal-card').forEach(el => el.classList.remove('active'));
+      if (role === 'complainant') {
+        document.getElementById('card-student').classList.add('active');
+        document.getElementById('portalHeaderTitle').innerText = 'Portal 1: Complainant / Student';
+        document.getElementById('portalHeaderSubtitle').innerText = 'Student grievance intake and lifecycle status tracking';
+        document.getElementById('portalActiveBadge').className = 'badge bg-primary text-white';
+        document.getElementById('portalActiveBadge').innerText = 'Student';
+      } else if (role === 'institutional_reviewer') {
+        document.getElementById('card-reviewer').classList.add('active');
+        document.getElementById('portalHeaderTitle').innerText = 'Portal 2: Institutional Reviewer';
+        const selectEl = document.getElementById('reviewerCollegeSelect');
+        const selectedOpt = selectEl && selectEl.selectedIndex >= 0 ? selectEl.options[selectEl.selectedIndex] : null;
+        const instName = selectedOpt ? selectedOpt.getAttribute('data-name') : 'ABC Engineering College';
+        const instCode = selectedOpt ? selectedOpt.getAttribute('data-code') : 'AICTE-ENG-001';
+        document.getElementById('portalHeaderSubtitle').innerText = 'Campus Reviewer for: ' + instName + ' (' + instCode + ')';
+        document.getElementById('portalActiveBadge').className = 'badge bg-warning text-dark';
+        document.getElementById('portalActiveBadge').innerText = 'Inst Reviewer';
+      } else {
+        document.getElementById('card-admin').classList.add('active');
+        document.getElementById('portalHeaderTitle').innerText = 'Portal 3: AICTE Officer';
+        document.getElementById('portalHeaderSubtitle').innerText = 'National monitoring dashboard and duplicate overlap queue';
+        document.getElementById('portalActiveBadge').className = 'badge bg-danger text-white';
+        document.getElementById('portalActiveBadge').innerText = 'AICTE Officer';
+      }
+    }
+
+    // Initialize college label on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const selectEl = document.getElementById('reviewerCollegeSelect');
+      if (selectEl) {
+        onReviewerCollegeChange(selectEl);
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

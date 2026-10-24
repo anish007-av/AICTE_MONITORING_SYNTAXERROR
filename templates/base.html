@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}NYAYA — AICTE Integrated Complaint Monitoring System{% endblock %}</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- Custom Government Tech Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="app-container">
+    <!-- Persistent Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="nyaya-logo-square sm">
+          <svg class="nyaya-scales-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="M7 21h10"/>
+            <path d="M12 3v18"/>
+            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+          </svg>
+        </div>
+        <div class="sidebar-brand-text">
+          <div class="sidebar-nyaya-title">NYAYA <span class="badge" style="font-size: 0.65rem; background: #0F766E; border: 1px solid #2DD4BF; vertical-align: middle;">न्याय</span></div>
+          <div class="sidebar-nyaya-sub">Youth Action &amp; Accountability</div>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        {% if g.current_user and g.current_user.is_complainant %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint in ['complaints.student_portal', 'complaints.student_detail'] %}active{% endif %}" href="{{ url_for('complaints.student_portal') }}">
+              <i class="bi bi-shield-check"></i>
+              <span>My Complaints</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'complaints.create' %}active{% endif %}" href="{{ url_for('complaints.create') }}">
+              <i class="bi bi-plus-circle"></i>
+              <span>Register Grievance</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
+              <i class="bi bi-speedometer2"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'complaints.index' %}active{% endif %}" href="{{ url_for('complaints.index') }}">
+              <i class="bi bi-journal-text"></i>
+              <span>{% if g.current_user and g.current_user.is_institution_admin %}Institution Complaints{% else %}All Complaints{% endif %}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'overlaps.index' %}active{% endif %}" href="{{ url_for('overlaps.index') }}">
+              <i class="bi bi-diagram-3"></i>
+              <span>Overlap Detection</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint in ['complaints.review_queues'] %}active{% endif %}" href="{{ url_for('complaints.review_queues') }}">
+              <i class="bi bi-inboxes"></i>
+              <span>Review Queues</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint in ['institutions.index', 'institutions.detail'] %}active{% endif %}" href="{{ url_for('institutions.index') }}">
+              <i class="bi bi-building"></i>
+              <span>Institutions</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'reports.index' %}active{% endif %}" href="{{ url_for('reports.index') }}">
+              <i class="bi bi-graph-up-arrow"></i>
+              <span>Analytics & Reports</span>
+            </a>
+          </li>
+          {% if g.current_user and (g.current_user.is_super_admin or g.current_user.is_reviewer) %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'settings.audit_log' %}active{% endif %}" href="{{ url_for('settings.audit_log') }}">
+              <i class="bi bi-clock-history"></i>
+              <span>Audit Log</span>
+            </a>
+          </li>
+          {% endif %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'settings.settings' %}active{% endif %}" href="{{ url_for('settings.settings') }}">
+              <i class="bi bi-gear"></i>
+              <span>Settings</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-success fw-semibold" href="/download-zip" title="Download entire codebase as a .zip file">
+              <i class="bi bi-cloud-arrow-down-fill text-success"></i>
+              <span>Download ZIP</span>
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-cpu text-info me-2"></i>
+          <div>
+            <div class="small fw-semibold text-white">AI Engine Active</div>
+            <div style="font-size: 0.72rem;">Hybrid Semantic v2.1</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="nyaya-brand-lockup">
+          <div class="nyaya-logo-square" title="NYAYA — Justice, Fairness &amp; Accountability">
+            <svg class="nyaya-scales-svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+              <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+              <path d="M7 21h10"/>
+              <path d="M12 3v18"/>
+              <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <div class="nyaya-brand-text">
+            <div class="nyaya-title-line">
+              <span class="nyaya-title">NYAYA</span>
+              <span class="nyaya-devanagari">न्याय</span>
+              <span class="portal-tag d-none d-lg-inline-block">Grievance Portal</span>
+            </div>
+            <div class="nyaya-fullform">Network for Youth Assistance, Accountability &amp; Action</div>
+            <div class="nyaya-subtitle">AICTE Integrated Complaint Monitoring System</div>
+          </div>
+        </div>
+
+        <div class="header-user-section">
+          {% if g.current_user and not g.current_user.is_complainant %}
+            <!-- Campus / Review Scope Switcher Dropdown -->
+            <div class="dropdown me-2">
+              <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center gap-1 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Switch active review campus">
+                <i class="bi bi-building text-warning me-1"></i>
+                <span class="small fw-semibold d-none d-md-inline">
+                  {% if active_institution %}
+                    {{ active_institution.code }}: {{ active_institution.name[:25] }}{% if active_institution.name|length > 25 %}...{% endif %}
+                  {% else %}
+                    All Colleges (Pan-Campus)
+                  {% endif %}
+                </span>
+                <span class="small fw-semibold d-inline d-md-none">
+                  {% if active_institution %}{{ active_institution.code }}{% else %}All Colleges{% endif %}
+                </span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="min-width: 300px; max-height: 420px; overflow-y: auto;">
+                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted"><i class="bi bi-buildings me-1"></i>Switch College / Review Campus</h6></li>
+                <li>
+                  <a class="dropdown-item d-flex align-items-center justify-content-between py-2 {% if not active_institution %}active fw-bold{% endif %}" href="{{ url_for('auth.switch_institution', institution_id=0) }}">
+                    <span><i class="bi bi-globe me-2 text-primary"></i>All Colleges (Pan-Campus Review)</span>
+                    {% if not active_institution %}<i class="bi bi-check-lg text-primary ms-2"></i>{% endif %}
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                {% for inst in all_institutions %}
+                  <li>
+                    <a class="dropdown-item d-flex align-items-center justify-content-between py-2 {% if active_institution and active_institution.id == inst.id %}active fw-bold{% endif %}" href="{{ url_for('auth.switch_institution', institution_id=inst.id) }}">
+                      <div>
+                        <span class="badge bg-secondary me-1">{{ inst.code }}</span>
+                        <span class="small">{{ inst.name }}</span>
+                      </div>
+                      {% if active_institution and active_institution.id == inst.id %}<i class="bi bi-check-lg text-primary ms-2"></i>{% endif %}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <a href="/download-zip" class="btn btn-sm btn-outline-success me-2 fw-semibold" title="Download Complete Project Source Code (.zip)">
+            <i class="bi bi-file-earmark-zip me-1"></i> Download Project ZIP
+          </a>
+          {% if g.current_user %}
+            <div class="user-profile-badge">
+              <div class="user-avatar">
+                {{ g.current_user.display_name[0] | upper }}
+              </div>
+              <div>
+                <div class="small fw-bold text-dark">{{ g.current_user.display_name }}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">{{ g.current_user.role_title() }}</div>
+              </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-danger" title="Sign out securely">
+              <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+            </a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary">Sign In</a>
+          {% endif %}
+        </div>
+      </header>
+
+      <!-- Flash Message Container -->
+      <div class="container-fluid px-4 pt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi {% if category == 'success' %}bi-check-circle{% elif category == 'danger' %}bi-exclamation-triangle{% elif category == 'warning' %}bi-exclamation-circle{% else %}bi-info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- Main Body View -->
+      <main class="content-wrapper">
+        {% block content %}{% endblock %}
+      </main>
+
+      <!-- Footer -->
+      <footer class="bg-white border-top py-2 px-4 small text-muted text-center">
+        NYAYA (न्याय) — Network for Youth Assistance, Accountability &amp; Action | AICTE Integrated Complaint Monitoring System &copy; 2026. Demonstration Environment.
+      </footer>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

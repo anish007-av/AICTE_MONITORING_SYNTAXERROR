@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Institutions Directory — NYAYA{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+  <div>
+    <h4 class="fw-bold mb-1 text-dark">Approved Educational Institutions Directory</h4>
+    <p class="text-muted small mb-0">Institutional registry with active grievance metrics and potential overlap counts.</p>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="gov-card mb-4">
+  <div class="gov-card-body py-3">
+    <form method="GET" action="{{ url_for('institutions.index') }}" class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <label class="form-label small text-muted mb-1">Search Institution or Code</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="Search name, AICTE code, district, or state..." value="{{ search_query or '' }}">
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">Filter State</label>
+        <select name="state" class="form-select form-select-sm">
+          <option value="">All States</option>
+          {% for st in all_states %}
+            <option value="{{ st }}" {% if selected_state == st %}selected{% endif %}>{{ st }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">Type</label>
+        <select name="type" class="form-select form-select-sm">
+          <option value="">All Types</option>
+          {% for tp in all_types %}
+            <option value="{{ tp }}" {% if selected_type == tp %}selected{% endif %}>{{ tp }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex align-items-end gap-1">
+        <button type="submit" class="btn btn-gov-primary btn-sm w-100">
+          <i class="bi bi-funnel me-1"></i> Filter
+        </button>
+        <a href="{{ url_for('institutions.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Institutions Grid / Table -->
+<div class="gov-card">
+  <div class="gov-card-header">
+    <h6 class="gov-card-title mb-0">Institutions List</h6>
+    <span class="badge bg-light text-dark border">{{ institutions | length }} institutions registered</span>
+  </div>
+  <div class="gov-card-body p-0">
+    {% if institutions %}
+      <div class="table-responsive">
+        <table class="gov-table mb-0">
+          <thead>
+            <tr>
+              <th>Institution Details</th>
+              <th>Type &amp; Region</th>
+              <th>Total Complaints</th>
+              <th>Open / Resolved</th>
+              <th>Pending Overlaps</th>
+              <th>Recent Activity</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in institutions %}
+              {% set inst = item.institution %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('institutions.detail', institution_id=inst.id) }}" class="fw-bold text-dark text-decoration-none">
+                    {{ inst.name }}
+                  </a>
+                  <div class="small text-muted">AICTE Code: <code>{{ inst.code }}</code></div>
+                </td>
+                <td>
+                  <div class="fw-semibold text-secondary small">{{ inst.institution_type }}</div>
+                  <div class="small text-muted">{{ inst.district }}, {{ inst.state }}</div>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border fs-6">{{ item.total_complaints }}</span>
+                </td>
+                <td>
+                  <span class="badge badge-status-open">{{ item.open_complaints }} Open</span>
+                  <span class="badge badge-status-resolved">{{ item.resolved_complaints }} Resolved</span>
+                </td>
+                <td>
+                  {% if item.pending_overlaps > 0 %}
+                    <a href="{{ url_for('overlaps.index', institution_id=inst.id) }}" class="badge badge-possible-overlap text-decoration-none">
+                      <i class="bi bi-exclamation-triangle-fill"></i> {{ item.pending_overlaps }} Awaiting Review
+                    </a>
+                  {% else %}
+                    <span class="small text-muted"><i class="bi bi-check me-1"></i>0 Pending</span>
+                  {% endif %}
+                </td>
+                <td style="max-width: 220px;">
+                  {% if item.recent_complaints %}
+                    <div class="small text-truncate" title="{{ item.recent_complaints[0].title }}">
+                      &bull; {{ item.recent_complaints[0].title }}
+                    </div>
+                    <div class="text-muted" style="font-size: 0.72rem;">{{ item.recent_complaints[0].created_at.strftime('%d %b %Y') }}</div>
+                  {% else %}
+                    <span class="text-muted small">No complaints</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <a href="{{ url_for('institutions.detail', institution_id=inst.id) }}" class="btn btn-sm btn-outline-primary">
+                    View Profile
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-5 text-center text-muted">No institutions match the filter criteria.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

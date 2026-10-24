@@ -1,0 +1,595 @@
+/* AICTE Integrated Institution Complaint Monitoring System
+   NYAYA (न्याय) - Network for Youth Assistance, Accountability & Action
+   Professional Government Tech Administrative Stylesheet */
+
+:root {
+  --primary-teal: #0F766E;
+  --primary-teal-dark: #115E59;
+  --primary-teal-deep: #042F2E;
+  --primary-teal-light: #F0FDFA;
+  --primary-navy: #042F2E;
+  --primary-navy-dark: #021F1E;
+  --primary-blue: #0F766E;
+  --accent-blue: #0F766E;
+  --accent-cyan: #0D9488;
+  --accent-teal: #14B8A6;
+  --bg-light: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text-primary: #1E293B;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --border-color: #E2E8F0;
+  --border-light: #EDF2F7;
+  
+  /* Overlap highlight palettes */
+  --strong-overlap-bg: #fef2f2;
+  --strong-overlap-border: #ef4444;
+  --strong-overlap-text: #991b1b;
+  
+  --possible-overlap-bg: #fffbeb;
+  --possible-overlap-border: #f59e0b;
+  --possible-overlap-text: #92400e;
+
+  --confirmed-related-bg: #ecfdf5;
+  --confirmed-related-border: #10b981;
+  --confirmed-related-text: #065f46;
+
+  --sidebar-width: 270px;
+  --header-height: 76px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Layout */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--primary-teal-deep);
+  color: #f8fafc;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.12);
+}
+
+.sidebar-brand {
+  height: var(--header-height);
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: var(--primary-navy-dark);
+}
+
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.sidebar-nyaya-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #FFFFFF;
+}
+
+.sidebar-nyaya-sub {
+  font-size: 0.68rem;
+  color: #99F6E4;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+
+.sidebar-brand img, .sidebar-brand .brand-icon {
+  margin-right: 0.75rem;
+  font-size: 1.4rem;
+  color: #2DD4BF;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 1rem 0;
+  margin: 0;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.sidebar-menu .nav-item {
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-menu .nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-menu .nav-link:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-left-color: #2DD4BF;
+}
+
+.sidebar-menu .nav-link.active {
+  color: #ffffff;
+  background-color: var(--primary-teal);
+  border-left-color: #5EEAD4;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-menu .nav-link i {
+  margin-right: 0.85rem;
+  width: 1.25rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.sidebar-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.82rem;
+  color: #94a3b8;
+  background-color: var(--primary-navy-dark);
+}
+
+.main-content {
+  margin-left: var(--sidebar-width);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Header */
+.top-header {
+  min-height: var(--header-height);
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* NYAYA Branding Lockup */
+.nyaya-brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  text-decoration: none;
+}
+
+.nyaya-logo-square {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  background: linear-gradient(135deg, #0F766E 0%, #115E59 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(15, 118, 110, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.nyaya-logo-square:hover {
+  transform: scale(1.02);
+}
+
+.nyaya-logo-square.sm {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.2);
+}
+
+.nyaya-logo-square.lg {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(15, 118, 110, 0.35);
+}
+
+.nyaya-scales-svg {
+  display: block;
+  stroke: #ffffff;
+}
+
+.nyaya-brand-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.nyaya-title-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1.15;
+}
+
+.nyaya-title {
+  font-size: 1.32rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #0F172A;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.nyaya-devanagari {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F766E;
+  background-color: #F0FDFA;
+  border: 1px solid #CCFBF1;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+}
+
+.nyaya-fullform {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+  margin-top: 0.15rem;
+  line-height: 1.25;
+}
+
+.nyaya-subtitle {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #64748B;
+  margin-top: 0.1rem;
+  line-height: 1.2;
+  letter-spacing: 0.15px;
+}
+
+.header-title-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.portal-tag {
+  background-color: #ccfbf1;
+  color: #0f766e;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid #99f6e4;
+}
+
+.header-user-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  background-color: var(--bg-light);
+  border: 1px solid var(--border-color);
+}
+
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--primary-teal);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Content Area */
+.content-wrapper {
+  padding: 2rem;
+  flex-grow: 1;
+}
+
+/* Cards */
+.gov-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin-bottom: 1.5rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.gov-card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.gov-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.gov-card-body {
+  padding: 1.25rem;
+}
+
+/* Stat Cards */
+.stat-card {
+  padding: 1.25rem;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.stat-card .stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.stat-card .stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.stat-card .stat-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Overlap Visual Highlights */
+.overlap-strong-highlight {
+  background-color: var(--strong-overlap-bg) !important;
+  border: 2px solid var(--strong-overlap-border) !important;
+}
+
+.overlap-possible-highlight {
+  background-color: var(--possible-overlap-bg) !important;
+  border: 2px solid var(--possible-overlap-border) !important;
+}
+
+.badge-strong-overlap {
+  background-color: var(--strong-overlap-bg);
+  border: 1px solid var(--strong-overlap-border);
+  color: var(--strong-overlap-text);
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge-possible-overlap {
+  background-color: var(--possible-overlap-bg);
+  border: 1px solid var(--possible-overlap-border);
+  color: var(--possible-overlap-text);
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge-confirmed-related {
+  background-color: var(--confirmed-related-bg);
+  border: 1px solid var(--confirmed-related-border);
+  color: var(--confirmed-related-text);
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Priority & Status Badges */
+.badge-priority-critical {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+}
+.badge-priority-high {
+  background-color: #ffedd5;
+  color: #c2410c;
+  font-weight: 600;
+}
+.badge-priority-medium {
+  background-color: #fef3c7;
+  color: #b45309;
+  font-weight: 600;
+}
+.badge-priority-low {
+  background-color: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+}
+
+.badge-status-open {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+.badge-status-under-review {
+  background-color: #fef3c7;
+  color: #b45309;
+  font-weight: 600;
+}
+.badge-status-escalated {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+}
+.badge-status-resolved {
+  background-color: #dcfce7;
+  color: #15803d;
+  font-weight: 600;
+}
+.badge-status-closed {
+  background-color: #e2e8f0;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Tables */
+.gov-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.gov-table th {
+  background-color: #f8fafc;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--border-color);
+  text-align: left;
+}
+
+.gov-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.gov-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Buttons */
+.btn-gov-primary {
+  background-color: var(--primary-teal);
+  color: white;
+  border: 1px solid var(--primary-teal);
+  font-weight: 500;
+}
+.btn-gov-primary:hover {
+  background-color: var(--primary-teal-dark);
+  border-color: var(--primary-teal-dark);
+  color: white;
+}
+
+.btn-gov-outline {
+  border: 1px solid var(--border-color);
+  background-color: white;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.btn-gov-outline:hover {
+  background-color: var(--bg-light);
+  border-color: #cbd5e1;
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+  border-left: 2px solid var(--border-color);
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+.timeline-marker {
+  position: absolute;
+  left: -2.45rem;
+  top: 0.2rem;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--primary-blue);
+  border: 2px solid white;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .sidebar {
+    width: 70px;
+  }
+  .sidebar-brand span, .sidebar-menu .nav-link span, .sidebar-footer {
+    display: none;
+  }
+  .sidebar-brand {
+    justify-content: center;
+  }
+  .sidebar-menu .nav-link i {
+    margin-right: 0;
+  }
+  .main-content {
+    margin-left: 70px;
+  }
+}

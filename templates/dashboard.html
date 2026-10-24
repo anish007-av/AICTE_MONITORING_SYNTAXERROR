@@ -1,0 +1,693 @@
+{% extends "base.html" %}
+
+{% block title %}NYAYA — AICTE Integrated Complaint Monitoring System{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+  <div>
+    <span class="badge mb-1" style="background: #CCFBF1; color: #0F766E; font-weight: 600;">NYAYA Central Monitoring Hub &bull; AICTE</span>
+    <h4 class="fw-bold mb-1 text-dark">Administrative Monitoring Overview</h4>
+    <p class="text-muted small mb-0">Live status monitoring, AI deduplication flags, and institutional resolution trends.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('overlaps.index') }}" class="btn btn-outline-warning text-dark btn-sm fw-semibold">
+      <i class="bi bi-diagram-3 me-1"></i> Review Overlaps Queue
+    </a>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="gov-card mb-4">
+  <div class="gov-card-body py-3">
+    <form method="GET" action="{{ url_for('dashboard.index') }}" class="row g-2 align-items-center">
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1"><i class="bi bi-buildings text-warning me-1"></i>Filter Institution</label>
+        <select name="institution_id" class="form-select form-select-sm" onchange="this.form.submit()">
+          <option value="All" {% if not selected_institution %}selected{% endif %}>All Registered Institutions</option>
+          {% for inst in institutions %}
+            <option value="{{ inst.id }}" {% if selected_institution == inst.id %}selected{% endif %}>
+              {{ inst.code }} — {{ inst.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">Filter Category</label>
+        <select name="category" class="form-select form-select-sm">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">From Date</label>
+        <input type="date" name="start_date" class="form-control form-select-sm" value="{{ start_date or '' }}">
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">To Date</label>
+        <input type="date" name="end_date" class="form-control form-select-sm" value="{{ end_date or '' }}">
+      </div>
+
+      <div class="col-md-2 d-flex align-items-end gap-1">
+        <button type="submit" class="btn btn-gov-primary btn-sm w-100">
+          <i class="bi bi-funnel me-1"></i> Apply
+        </button>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary btn-sm" title="Clear Filters">
+          <i class="bi bi-x-circle"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Key Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-xl-3 col-md-6">
+    <a href="{{ url_for('complaints.index') }}" class="text-decoration-none">
+      <div class="stat-card">
+        <div>
+          <div class="stat-value">{{ metrics.total_complaints }}</div>
+          <div class="stat-label">Total Complaints</div>
+        </div>
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-archive"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <a href="{{ url_for('complaints.index', status='Open') }}" class="text-decoration-none">
+      <div class="stat-card">
+        <div>
+          <div class="stat-value text-primary">{{ metrics.open_complaints }}</div>
+          <div class="stat-label">Open Complaints</div>
+        </div>
+        <div class="stat-icon bg-info bg-opacity-10 text-info">
+          <i class="bi bi-folder2-open"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <a href="{{ url_for('complaints.index', status='Under Review') }}" class="text-decoration-none">
+      <div class="stat-card">
+        <div>
+          <div class="stat-value text-warning">{{ metrics.under_review_complaints }}</div>
+          <div class="stat-label">Under Investigation</div>
+        </div>
+        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <a href="{{ url_for('complaints.index', status='Resolved') }}" class="text-decoration-none">
+      <div class="stat-card">
+        <div>
+          <div class="stat-value text-success">{{ metrics.resolved_complaints }}</div>
+          <div class="stat-label">Resolved Complaints</div>
+        </div>
+        <div class="stat-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Secondary Monitoring Signals -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card border-danger border-opacity-50" style="background-color: var(--strong-overlap-bg);">
+      <div>
+        <div class="stat-value text-danger">{{ metrics.strong_overlaps_pending }}</div>
+        <div class="stat-label text-danger">Strong Potential Overlaps</div>
+        <div class="small text-muted mt-1">Review required (Score &ge; 0.80)</div>
+      </div>
+      <a href="{{ url_for('overlaps.index', status='Pending Review', strength='Strong Potential Overlap') }}" class="btn btn-sm btn-danger">
+        Inspect <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="stat-card border-warning border-opacity-50" style="background-color: var(--possible-overlap-bg);">
+      <div>
+        <div class="stat-value text-warning">{{ metrics.possible_overlaps_pending }}</div>
+        <div class="stat-label text-warning">Possible Overlaps Flagged</div>
+        <div class="small text-muted mt-1">Contextual review (0.50 &le; Score &lt; 0.80)</div>
+      </div>
+      <a href="{{ url_for('overlaps.index', status='Pending Review', strength='Possible Overlap') }}" class="btn btn-sm btn-warning text-dark">
+        Review <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div>
+        <div class="stat-value text-danger">{{ metrics.overdue_complaints }}</div>
+        <div class="stat-label">Pending &gt; 30 Days</div>
+        <div class="small text-muted mt-1">Avg Resolution: {{ metrics.avg_resolution_days }} days</div>
+      </div>
+      <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+        <i class="bi bi-alarm"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-3 mb-4">
+  <!-- Monthly Trend -->
+  <div class="col-lg-8">
+    <div class="gov-card h-100">
+      <div class="gov-card-header">
+        <h6 class="gov-card-title"><i class="bi bi-graph-up me-2 text-primary"></i>Complaint Intake Volume Over Time</h6>
+      </div>
+      <div class="gov-card-body">
+        <canvas id="trendChart" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Distribution -->
+  <div class="col-lg-4">
+    <div class="gov-card h-100">
+      <div class="gov-card-header">
+        <h6 class="gov-card-title"><i class="bi bi-pie-chart me-2 text-primary"></i>Status Distribution</h6>
+      </div>
+      <div class="gov-card-body d-flex justify-content-center align-items-center">
+        <div style="width: 240px; height: 240px;">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Category Breakdown -->
+  <div class="col-lg-6">
+    <div class="gov-card h-100">
+      <div class="gov-card-header">
+        <h6 class="gov-card-title"><i class="bi bi-bar-chart-steps me-2 text-primary"></i>Complaints by Category</h6>
+      </div>
+      <div class="gov-card-body">
+        <canvas id="categoryChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Priority Breakdown -->
+  <div class="col-lg-6">
+    <div class="gov-card h-100">
+      <div class="gov-card-header">
+        <h6 class="gov-card-title"><i class="bi bi-shield-exclamation me-2 text-primary"></i>Priority Distribution</h6>
+      </div>
+      <div class="gov-card-body">
+        <canvas id="priorityChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI-Assisted Complaint Overlap Groups & Human Verification Center -->
+<div class="gov-card mb-4 border-primary border-opacity-25 shadow-sm">
+  <div class="gov-card-header d-flex flex-wrap justify-content-between align-items-center py-3 bg-light">
+    <div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge" style="background: #0F766E; color: white; font-size: 0.75rem;">AI Deduplication Engine v2.1</span>
+        <h5 class="gov-card-title mb-0 fw-bold text-dark">Suggested Complaint Overlap Groups &amp; Human Verification</h5>
+      </div>
+      <p class="text-muted small mb-0 mt-1">
+        AI cluster detection grouping multiple grievances that describe the same underlying issue across varying student wording. Authorized officers can inspect evidence and confirm or reject overlap determinations.
+      </p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <a href="{{ url_for('overlaps.index') }}" class="btn btn-sm btn-outline-primary fw-semibold">
+        <i class="bi bi-collection me-1"></i> Full Overlaps Queue ({{ pending_overlap_alerts | length }} Pairs)
+      </a>
+    </div>
+  </div>
+
+  <div class="gov-card-body p-3">
+    {% if suggested_overlap_groups %}
+      <div class="row g-3">
+        {% for item in suggested_overlap_groups %}
+          <div class="col-12">
+            <div class="border rounded p-3 bg-white shadow-sm position-relative {% if item.review_status == 'Confirmed Overlap' %}border-success border-2{% elif item.review_status == 'Rejected' %}border-secondary border-opacity-50{% else %}border-warning border-2{% endif %}">
+              
+              <!-- Group Top Header -->
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2 pb-2 border-bottom">
+                <div>
+                  <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <span class="badge bg-dark fw-bold">{{ item.group.group_reference }}</span>
+                    <span class="badge bg-light text-dark border"><i class="bi bi-building text-warning me-1"></i>{{ item.group.institution.name if item.group.institution else 'Cross-Institution' }}</span>
+                    <span class="badge bg-light text-primary border"><i class="bi bi-tag me-1"></i>{{ item.group.category }}</span>
+                    <span class="badge bg-info bg-opacity-10 text-info fw-bold">{{ item.complaints | length }} Related Grievances</span>
+                  </div>
+                  <h6 class="fw-bold text-dark mb-1 fs-6">{{ item.group.title }}</h6>
+                  <p class="small text-secondary mb-0" style="font-size: 0.82rem;">{{ item.group.description }}</p>
+                </div>
+
+                <div class="text-end">
+                  <!-- Review Status Badge -->
+                  <div class="mb-2">
+                    {% if item.review_status == 'Confirmed Overlap' %}
+                      <span class="badge bg-success fs-6 px-3 py-2 text-white shadow-sm">
+                        <i class="bi bi-check-circle-fill me-1"></i> Confirmed Overlap
+                      </span>
+                    {% elif item.review_status == 'Rejected' %}
+                      <span class="badge bg-secondary fs-6 px-3 py-2 text-white shadow-sm">
+                        <i class="bi bi-x-circle-fill me-1"></i> Rejected / Not Related
+                      </span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark fs-6 px-3 py-2 shadow-sm border border-warning">
+                        <i class="bi bi-hourglass-split me-1"></i> Pending Verification
+                      </span>
+                    {% endif %}
+                  </div>
+                  <div class="small text-muted">
+                    <i class="bi bi-cpu text-info me-1"></i> Match Score: <strong>{{ item.avg_similarity }}%</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Associated Complaints List in this Group -->
+              <div class="mb-3">
+                <div class="small fw-bold text-dark mb-2 text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                  <i class="bi bi-list-check me-1 text-primary"></i> Complaints Flagged in this Overlap Group:
+                </div>
+                <div class="row g-2">
+                  {% for c in item.complaints %}
+                    <div class="col-md-4">
+                      <div class="p-2 bg-light rounded border h-100" style="font-size: 0.8rem;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                          <span class="badge bg-primary bg-opacity-10 text-primary fw-bold">#{{ c.id }} ({{ c.reference_number }})</span>
+                          <span class="badge bg-white text-secondary border">{{ c.status }}</span>
+                        </div>
+                        <div class="fw-semibold text-dark text-truncate mb-1" title="{{ c.title }}">{{ c.title }}</div>
+                        <div class="text-muted small" style="font-size: 0.75rem; line-height: 1.25; max-height: 38px; overflow: hidden;" title="{{ c.description }}">
+                          {{ c.description }}
+                        </div>
+                        <div class="mt-2 pt-1 border-top d-flex justify-content-between align-items-center text-muted" style="font-size: 0.7rem;">
+                          <span><i class="bi bi-person me-1"></i>{{ c.complainant_name or 'Complainant' }}</span>
+                          <a href="{{ url_for('complaints.detail', complaint_id=c.id) }}" class="text-primary text-decoration-none fw-semibold" target="_blank">
+                            Inspect <i class="bi bi-box-arrow-up-right"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Action Controls Bar -->
+              <div class="d-flex flex-wrap justify-content-between align-items-center pt-2 border-top gap-2 bg-light p-2 rounded">
+                <div class="small text-muted">
+                  {% if item.representative_overlap and item.representative_overlap.evidence_data.summary %}
+                    <i class="bi bi-info-circle text-primary me-1"></i>
+                    <span class="text-secondary">{{ item.representative_overlap.evidence_data.summary[:130] }}...</span>
+                  {% else %}
+                    <i class="bi bi-info-circle text-primary me-1"></i>
+                    AI multi-signal analysis detected high thematic and contextual correlation across these records.
+                  {% endif %}
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                  <!-- Inspect Complaints Modal Trigger -->
+                  <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#inspectModal{{ item.group.id }}">
+                    <i class="bi bi-zoom-in me-1"></i> Inspect Group ({{ item.complaints | length }})
+                  </button>
+
+                  <!-- Working Controls: Confirm or Reject -->
+                  {% if item.representative_overlap %}
+                    <form method="POST" action="{{ url_for('overlaps.review_action', overlap_id=item.representative_overlap.id) }}" class="d-inline">
+                      <input type="hidden" name="action" value="confirm">
+                      <input type="hidden" name="review_notes" value="Verified by AICTE Officer: Multiple independent grievances describe the same underlying institutional issue.">
+                      <button type="submit" class="btn btn-sm btn-success fw-semibold" {% if item.review_status == 'Confirmed Overlap' %}disabled{% endif %} title="Confirm this group describes the same underlying problem">
+                        <i class="bi bi-check2-circle me-1"></i> Confirm Overlap
+                      </button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('overlaps.review_action', overlap_id=item.representative_overlap.id) }}" class="d-inline">
+                      <input type="hidden" name="action" value="reject">
+                      <input type="hidden" name="review_notes" value="Reviewed by AICTE Officer: Complaints represent distinct individual matters.">
+                      <button type="submit" class="btn btn-sm btn-outline-danger fw-semibold" {% if item.review_status == 'Rejected' %}disabled{% endif %} title="Mark as NOT related">
+                        <i class="bi bi-x-circle me-1"></i> Reject Overlap
+                      </button>
+                    </form>
+
+                    {% if item.review_status != 'Pending Verification' %}
+                      <form method="POST" action="{{ url_for('overlaps.review_action', overlap_id=item.representative_overlap.id) }}" class="d-inline">
+                        <input type="hidden" name="action" value="reset">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Reset to Pending Verification">
+                          <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                      </form>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Inspection Modal for Group -->
+          <div class="modal fade" id="inspectModal{{ item.group.id }}" tabindex="-1" aria-labelledby="inspectModalLabel{{ item.group.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+              <div class="modal-content">
+                <div class="modal-header bg-light">
+                  <div>
+                    <h5 class="modal-title fw-bold text-dark" id="inspectModalLabel{{ item.group.id }}">
+                      <i class="bi bi-diagram-3-fill text-primary me-2"></i>{{ item.group.title }}
+                    </h5>
+                    <div class="small text-muted">
+                      {{ item.group.group_reference }} &bull; {{ item.group.institution.name if item.group.institution else 'All Institutions' }} &bull; Category: {{ item.group.category }}
+                    </div>
+                  </div>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                  <!-- AI Evidence Summary -->
+                  <div class="bg-light p-3 rounded border mb-4">
+                    <h6 class="fw-bold text-dark small text-uppercase"><i class="bi bi-cpu text-info me-1"></i> AI Similarity &amp; Deduplication Rationale</h6>
+                    {% if item.representative_overlap %}
+                      <p class="small text-secondary mb-2">{{ item.representative_overlap.evidence_data.summary }}</p>
+                      <div class="row g-2 align-items-center mb-2" style="font-size: 0.78rem;">
+                        <div class="col-auto"><strong>Scoring Breakdown:</strong></div>
+                        <div class="col-auto"><span class="badge bg-white text-dark border">Semantic: {{ (item.representative_overlap.semantic_score * 100) | round(1) }}%</span></div>
+                        <div class="col-auto"><span class="badge bg-white text-dark border">Keywords: {{ (item.representative_overlap.keyword_score * 100) | round(1) }}%</span></div>
+                        <div class="col-auto"><span class="badge bg-white text-dark border">Category: {{ (item.representative_overlap.category_score * 100) | round(1) }}%</span></div>
+                        <div class="col-auto"><span class="badge bg-white text-dark border">Context: {{ (item.representative_overlap.context_score * 100) | round(1) }}%</span></div>
+                      </div>
+                      {% if item.representative_overlap.evidence_data.shared_keywords %}
+                        <div class="small">
+                          <span class="text-muted me-1">Shared Key Operational Terms:</span>
+                          {% for kw in item.representative_overlap.evidence_data.shared_keywords %}
+                            <span class="badge bg-secondary">{{ kw }}</span>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                    {% else %}
+                      <p class="small text-secondary mb-0">High semantic and contextual correlation detected across these grievances.</p>
+                    {% endif %}
+                  </div>
+
+                  <!-- Side-by-Side Detailed Complaints Inspection -->
+                  <h6 class="fw-bold text-dark mb-3 small text-uppercase"><i class="bi bi-journals me-1 text-primary"></i> Complaints in this Group: Detailed Comparison</h6>
+                  <div class="row g-3">
+                    {% for c in item.complaints %}
+                      <div class="col-md-4">
+                        <div class="p-3 bg-white rounded border h-100 shadow-sm">
+                          <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <span class="badge bg-primary text-white">Complaint #{{ c.id }}</span>
+                            <span class="badge bg-light text-secondary border">{{ c.status }}</span>
+                          </div>
+                          <div class="small text-muted mb-1"><strong>Ref:</strong> {{ c.reference_number }}</div>
+                          <div class="small text-muted mb-1"><strong>Complainant:</strong> {{ c.complainant_name or 'Confidential' }}</div>
+                          <div class="small text-muted mb-1"><strong>Date:</strong> {{ c.created_at.strftime('%d %b %Y') if c.created_at else 'Recent' }}</div>
+                          <div class="small text-muted mb-2"><strong>Category:</strong> {{ c.category }}</div>
+                          
+                          <h6 class="fw-bold text-dark mb-2" style="font-size: 0.88rem;">{{ c.title }}</h6>
+                          <div class="p-2 bg-light rounded text-secondary small" style="white-space: pre-wrap; font-size: 0.8rem; min-height: 120px;">
+{{ c.description }}
+                          </div>
+                          <div class="mt-3 text-end">
+                            <a href="{{ url_for('complaints.detail', complaint_id=c.id) }}" class="btn btn-sm btn-outline-primary py-1 px-2" target="_blank" style="font-size: 0.75rem;">
+                              Full Complaint Dossier <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <div class="modal-footer bg-light d-flex justify-content-between">
+                  <div class="small text-muted">
+                    Current Status: <strong>{{ item.review_status }}</strong>
+                  </div>
+                  <div class="d-flex gap-2">
+                    {% if item.representative_overlap %}
+                      <form method="POST" action="{{ url_for('overlaps.review_action', overlap_id=item.representative_overlap.id) }}">
+                        <input type="hidden" name="action" value="confirm">
+                        <input type="hidden" name="review_notes" value="Confirmed related by AICTE officer via group inspection modal.">
+                        <button type="submit" class="btn btn-sm btn-success" {% if item.review_status == 'Confirmed Overlap' %}disabled{% endif %}>
+                          <i class="bi bi-check-circle me-1"></i> Confirm Overlap Group
+                        </button>
+                      </form>
+
+                      <form method="POST" action="{{ url_for('overlaps.review_action', overlap_id=item.representative_overlap.id) }}">
+                        <input type="hidden" name="action" value="reject">
+                        <input type="hidden" name="review_notes" value="Marked not related by AICTE officer via group inspection modal.">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" {% if item.review_status == 'Rejected' %}disabled{% endif %}>
+                          <i class="bi bi-x-circle me-1"></i> Reject Overlap Group
+                        </button>
+                      </form>
+                    {% endif %}
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="p-4 text-center text-muted">
+        <i class="bi bi-check2-all fs-2 text-success d-block mb-2"></i>
+        No overlap groups currently flagged. All grievances appear distinct.
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Live Alert Tables -->
+<div class="row g-3">
+  <!-- Pending Overlap Detection Alerts -->
+  <div class="col-lg-6">
+    <div class="gov-card h-100">
+      <div class="gov-card-header">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-lightning-charge-fill text-warning"></i>
+          <h6 class="gov-card-title">Pending AI Overlap Review Queue</h6>
+        </div>
+        <a href="{{ url_for('overlaps.index') }}" class="btn btn-sm btn-link text-decoration-none">View All Queue</a>
+      </div>
+      <div class="gov-card-body p-0">
+        {% if pending_overlap_alerts %}
+          <div class="list-group list-group-flush">
+            {% for o in pending_overlap_alerts %}
+              <div class="list-group-item p-3 {% if o.relationship_type == 'Strong Potential Overlap' %}overlap-strong-highlight{% else %}overlap-possible-highlight{% endif %}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="{% if o.relationship_type == 'Strong Potential Overlap' %}badge-strong-overlap{% else %}badge-possible-overlap{% endif %}">
+                    <i class="bi bi-exclamation-octagon-fill"></i>
+                    {{ o.relationship_type | upper }}
+                  </span>
+                  <span class="badge bg-dark fw-bold">{{ (o.similarity_score * 100) | round(1) }}% Match</span>
+                </div>
+                <div class="small fw-bold text-dark mb-1">
+                  #{{ o.first_complaint_id }} ({{ o.first_complaint.reference_number }}) &harr; #{{ o.second_complaint_id }} ({{ o.second_complaint.reference_number }})
+                </div>
+                <div class="text-secondary small mb-2 text-truncate">
+                  "{{ o.first_complaint.title }}" vs. "{{ o.second_complaint.title }}"
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="small text-muted"><i class="bi bi-building me-1"></i>{{ o.first_complaint.institution.name }}</span>
+                  <a href="{{ url_for('overlaps.index') }}" class="btn btn-sm btn-outline-dark py-0 px-2 small">Review</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="p-4 text-center text-muted">
+            <i class="bi bi-check-circle fs-3 text-success d-block mb-2"></i>
+            No pending duplicate or overlap complaints requiring review!
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Complaints Intake -->
+  <div class="col-lg-6">
+    <div class="gov-card h-100">
+      <div class="gov-card-header">
+        <h6 class="gov-card-title"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Complaints Intake</h6>
+        <a href="{{ url_for('complaints.index') }}" class="btn btn-sm btn-link text-decoration-none">View All</a>
+      </div>
+      <div class="gov-card-body p-0">
+        {% if recent_complaints %}
+          <div class="table-responsive">
+            <table class="gov-table mb-0">
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Institution</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in recent_complaints %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('complaints.detail', complaint_id=c.id) }}" class="fw-bold text-decoration-none">
+                        {{ c.reference_number }}
+                      </a>
+                    </td>
+                    <td class="text-truncate" style="max-width: 140px;" title="{{ c.institution.name }}">
+                      {{ c.institution.name }}
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark border">{{ c.category }}</span>
+                    </td>
+                    <td>
+                      {% if c.status == 'Open' %}
+                        <span class="badge badge-status-open">Open</span>
+                      {% elif c.status == 'Under Review' %}
+                        <span class="badge badge-status-under-review">Under Review</span>
+                      {% elif c.status == 'Resolved' %}
+                        <span class="badge badge-status-resolved">Resolved</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{{ c.status }}</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-4 text-center text-muted">No recent complaints registered.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const metricsData = {{ metrics | tojson }};
+
+  // 1. Intake Trends Chart
+  const trendCtx = document.getElementById('trendChart').getContext('2d');
+  new Chart(trendCtx, {
+    type: 'line',
+    data: {
+      labels: metricsData.trend_labels,
+      datasets: [{
+        label: 'Complaints Registered',
+        data: metricsData.trend_counts,
+        borderColor: '#1a568c',
+        backgroundColor: 'rgba(26, 86, 140, 0.1)',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: '#0f2b48',
+        pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0, color: '#475569' },
+          grid: { color: '#f1f5f9' }
+        },
+        x: {
+          ticks: { color: '#475569' },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+
+  // 2. Status Distribution (Donut)
+  const statusCtx = document.getElementById('statusChart').getContext('2d');
+  new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(metricsData.status_distribution),
+      datasets: [{
+        data: Object.values(metricsData.status_distribution),
+        backgroundColor: ['#0284c7', '#f59e0b', '#ef4444', '#10b981', '#64748b'],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, color: '#334155' } }
+      }
+    }
+  });
+
+  // 3. Category Distribution (Horizontal Bar)
+  const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+  new Chart(categoryCtx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(metricsData.category_distribution),
+      datasets: [{
+        label: 'Count',
+        data: Object.values(metricsData.category_distribution),
+        backgroundColor: '#3b82f6',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { precision: 0 } },
+        y: { ticks: { autoSkip: false, font: { size: 11 } } }
+      }
+    }
+  });
+
+  // 4. Priority Distribution (Bar)
+  const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+  new Chart(priorityCtx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(metricsData.priority_distribution),
+      datasets: [{
+        label: 'Priority Volume',
+        data: Object.values(metricsData.priority_distribution),
+        backgroundColor: ['#64748b', '#f59e0b', '#ea580c', '#dc2626'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } }
+      }
+    }
+  });
+</script>
+{% endblock %}
